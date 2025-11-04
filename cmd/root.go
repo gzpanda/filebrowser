@@ -425,7 +425,7 @@ func quickSetup(flags *pflag.FlagSet, d pythonData) error {
 		UserHomeBasePath:      settings.DefaultUsersHomeBasePath,
 		Defaults: settings.UserDefaults{
 			Scope:          ".",
-			Locale:         "en",
+			Locale:         "zh-cn",
 			SingleClick:    false,
 			AceEditorTheme: getStringParam(flags, "defaults.aceEditorTheme"),
 			Perm: users.Permissions{

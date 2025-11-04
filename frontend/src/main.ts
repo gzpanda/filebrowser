@@ -10,7 +10,7 @@ import type {
 } from "vue-toastification/dist/types/types";
 import createPinia from "@/stores";
 import router from "@/router";
-import i18n, { isRtl } from "@/i18n";
+import i18n from "@/i18n";
 import App from "@/App.vue";
 import CustomToast from "@/components/CustomToast.vue";
 
@@ -82,7 +82,7 @@ app.provide("$showSuccess", (message: string) => {
         message: message,
       },
     },
-    { ...toastConfig, rtl: isRtl() }
+    { ...toastConfig }
   );
 });
 
@@ -101,7 +101,6 @@ app.provide("$showError", (error: Error | string, displayReport = true) => {
     {
       ...toastConfig,
       timeout: 0,
-      rtl: isRtl(),
     }
   );
 });
