@@ -108,6 +108,10 @@
         >
         </VideoPlayer>
         <object v-else-if="isPdf" class="pdf" :data="previewUrl"></object>
+               <div v-else-if="isDocx" class="docx-preview">
+          <div v-if="docxLoading" class="loading small">Loading document...</div>
+          <div v-else ref="docxContainer" class="docx-container"></div>
+        </div>
         <div v-else-if="fileStore.req?.type == 'blob'" class="info">
           <div class="title">
             <i class="material-icons">feedback</i>
@@ -166,7 +170,7 @@ import { useStorage } from "@vueuse/core";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
-
+import { renderAsync }  from "docx-preview";
 import { files as api } from "@/api";
 import { createURL } from "@/api/utils";
 import { resizePreview } from "@/utils/constants";
@@ -279,6 +283,46 @@ const isPdf = computed(() => fileStore.req?.extension.toLowerCase() == ".pdf");
 const isEpub = computed(
   () => fileStore.req?.extension.toLowerCase() == ".epub"
 );
+
+const isDocx = computed(() => {
+  const ext = fileStore.req?.extension?.toLowerCase() ?? "";
+  return ext === ".docx";
+});
+
+const docxLoading = ref(false);
+const docxContainer = ref<HTMLElement | null>(null);
+
+const loadDocx = async () => {
+  if (!fileStore.req || !isDocx.value || !docxContainer.value) {
+    return;
+  }
+
+  docxLoading.value = true;
+  // clear any previous render
+  docxContainer.value.innerHTML = "";
+
+  try {
+    const res = await fetch(previewUrl.value, { credentials: "include" });
+    if (!res.ok) throw new Error("Failed to fetch document");
+    const arrayBuffer = await res.arrayBuffer();
+    console.log(arrayBuffer);
+    // render into container; options can be passed as 3rd arg
+    await renderAsync(arrayBuffer, docxContainer.value);
+  } catch (e: any) {
+    console.error("DOCX preview error:", e);
+    // leave container empty (fallback UI shows download/open)
+  } finally {
+    docxLoading.value = false;
+  }
+};
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", key);
+  // cleanup docx container
+  if (docxContainer.value) {
+    docxContainer.value.innerHTML = "";
+  }
+});
 
 const isResizeEnabled = computed(() => resizePreview);
 
@@ -398,6 +442,14 @@ const updatePreview = async () => {
           break;
         }
       }
+
+           if (isDocx.value) {
+        // wait for next tick if DOM ref not yet mounted, then render
+        await loadDocx();
+      } else if (docxContainer.value) {
+        docxContainer.value.innerHTML = "";
+        docxLoading.value = false;
+     }
 
       return;
     }

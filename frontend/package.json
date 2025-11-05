@@ -24,6 +24,7 @@
     "ace-builds": "^1.43.2",
     "core-js": "^3.44.0",
     "dayjs": "^1.11.13",
+    "docx-preview": "^0.3.7",
     "dompurify": "^3.2.6",
     "epubjs": "^0.3.93",
     "filesize": "^10.1.1",
